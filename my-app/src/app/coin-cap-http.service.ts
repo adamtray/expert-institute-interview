@@ -13,4 +13,9 @@ export class CoinCapHttpService {
       let url = this.baseUrl + 'assets';
       return this.httpClient.get(url);
     }
+
+    getAssetHistory(id: string) {
+      let url = this.baseUrl + 'assets/' + id + '/history?interval=d1';
+      return this.httpClient.get(url);
+    }
 }

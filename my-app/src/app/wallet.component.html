@@ -1,0 +1,21 @@
+<ngx-datatable
+  style="width: 100%"
+  #myTable
+  class="bootstrap"
+  [columnMode]="ColumnMode.force"
+  [rows]="walletData"
+  [rowHeight]="'auto'"
+>
+  <ngx-datatable-column [resizeable]="false" name="" [sortable]="false" [width]="60">
+    <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+      <button >Remove</button>
+    </ng-template>
+  </ngx-datatable-column>
+  <ngx-datatable-column [resizeable]="false" name="Symbol"></ngx-datatable-column>
+  <ngx-datatable-column [resizeable]="false" name="Qty">
+    <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+      <input type="text" [value]="value"/>
+    </ng-template>
+  </ngx-datatable-column>
+  <ngx-datatable-column [resizeable]="false" name="Price"></ngx-datatable-column>
+</ngx-datatable>

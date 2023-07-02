@@ -1,6 +1,154 @@
-<div *ngFor="let detail of details">
-  <div *ngFor="let item of detail | keyvalue">
-    {{ item.key }} : {{ item.value }}
+<h1>CoinCap</h1>
+<button (click)="toggleWallet()">{{ showWallet ? 'Hide ' : 'Show '}} wallet</button>
+<ng-container *ngIf="showWallet">
+<!--  <wallet [walletData]="walletData"></wallet>-->
+  <ngx-datatable
+    style="width: 100%"
+    #myTable
+    class="bootstrap"
+    [columnMode]="ColumnMode.force"
+    [rows]="walletData"
+    [rowHeight]="'auto'"
+    [footerHeight]="50"
+  >
+    <ngx-datatable-column [resizeable]="false" name="" [sortable]="false" [width]="60">
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+        <button (click)="removeFromWallet(row)">Remove</button>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Symbol"></ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Qty">
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+        <input type="text" (blur)="updateWalletQty($event, row)" [value]="value"/>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Price">
+      <ng-template ngx-datatable-header-template>Price per unit</ng-template>
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+        {{ value | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Total Owned">
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+        {{ (row.qty * row.price) | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-footer>
+      <ng-template
+        ngx-datatable-footer-template
+        let-rowCount="rowCount"
+        let-pageSize="pageSize"
+        let-selectedCount="selectedCount"
+        let-curPage="curPage"
+        let-offset="offset"
+      >
+        <div>Total: {{ walletTotal | currency }}</div>
+      </ng-template>
+    </ngx-datatable-footer>
+  </ngx-datatable>
+</ng-container>
+<ng-container *ngIf="!showWallet">
+  <div style="display: flex; flex-flow: row">
+    <input
+      class="filter"
+      type="text"
+      placeholder="Type to filter"
+      (keyup)="updateFilter($event)"
+    />
   </div>
-</div>
+  <ngx-datatable
+    style="width: 100%"
+    #myTable
+    class="bootstrap"
+    [columnMode]="ColumnMode.force"
+    [rows]="filteredDetails"
+    [rowHeight]="'auto'"
+  >
+    <!-- Row Detail Template -->
+    <ngx-datatable-row-detail [rowHeight]="350" #myDetailRow>
+      <ng-template let-row="row" let-expanded="expanded" ngx-datatable-row-detail-template>
+        <ng-container *ngIf="expanded">
+          <history-chart
+            [dates]="dates$ | async"
+            [prices]="prices$ | async"
+          >
+          </history-chart>
+        </ng-container>
+        <div style="padding-left:35px;">
+          <div><strong>Address</strong></div>
+        </div>
+      </ng-template>
+    </ngx-datatable-row-detail>
 
+    <ngx-datatable-column [resizeable]="false" name="" [sortable]="false" [width]="60">
+      <ng-template ngx-datatable-cell-template let-row="row" let-value="value">
+       <button (click)="addToWallet(row)">Add to wallet</button>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Rank" [width]="60"></ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Symbol"></ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Name"></ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="Supply">
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value | number: '1.2-2' }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="MaxSupply">
+      <ng-template ngx-datatable-header-template>Max Supply</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        <span *ngIf="!value">
+          -
+        </span>
+        <span *ngIf="value">
+        {{ value | number: '1.2-2' }}
+        </span>
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="MarketCapUSD">
+      <ng-template ngx-datatable-header-template>Market Cap</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="VolumeUsd24Hr">
+      <ng-template ngx-datatable-header-template>Volume Traded 24hr</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="PriceUSD">
+      <ng-template ngx-datatable-header-template>Price</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="ChangePercent24Hr">
+      <ng-template ngx-datatable-header-template>Change Percent 24hr</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column [resizeable]="false" name="vwap24Hr">
+      <ng-template ngx-datatable-header-template>VWAP Last 24hr</ng-template>
+      <ng-template ngx-datatable-cell-template let-value="value">
+        {{ value | currency }}
+      </ng-template>
+    </ngx-datatable-column>
+    <ngx-datatable-column name="Chart"
+      [resizeable]="false"
+      [sortable]="false"
+      [draggable]="false"
+      [canAutoResize]="false"
+    >
+      <ng-template let-row="row" let-expanded="expanded" ngx-datatable-cell-template>
+        <span
+          [class.datatable-icon-left]="!expanded"
+          [class.datatable-icon-down]="expanded"
+          title="Expand/Collapse Row"
+          (click)="toggleExpandRow(row)"
+        >
+        </span>
+      </ng-template>
+    </ngx-datatable-column>
+  </ngx-datatable>
+</ng-container>
